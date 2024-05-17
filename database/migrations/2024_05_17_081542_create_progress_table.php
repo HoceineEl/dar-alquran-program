@@ -9,11 +9,11 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up()
+    public function up()
     {
         Schema::create('progress', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('member_id')->constrained()->onDelete('cascade');
+            $table->foreignId('student_id')->constrained()->onDelete('cascade');
             $table->date('date');
             $table->enum('status', ['memorized', 'absent']);
             $table->integer('page')->nullable();

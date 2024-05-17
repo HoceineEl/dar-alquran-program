@@ -25,11 +25,11 @@ class ProgressResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('member_id')
+                Forms\Components\Select::make('student_id')
                     ->label('الطالب')
                     ->searchable()
                     ->preload()
-                    ->relationship('member', 'name')
+                    ->relationship('student', 'name')
                     ->required(),
                 Forms\Components\DatePicker::make('date')
                     ->label('التاريخ')
@@ -59,13 +59,14 @@ class ProgressResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('page')
                             ->label('الصفحة')
-                            ->options(range(1, 650))
+                            ->options(range(1, 604))
                             ->searchable()
                             ->required(),
-                        Forms\Components\TextInput::make('lines_from')
-                            ->label('من السطر')
+                        Forms\Components\Select::make('lines_from')
+                            ->options(range(1, 15))
                             ->required(),
-                        Forms\Components\TextInput::make('lines_to')
+                        Forms\Components\Select::make('lines_to')
+                            ->options(range(1, 15))
                             ->label('إلى السطر')
                             ->required(),
                     ])
@@ -76,7 +77,7 @@ class ProgressResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('member.name')->label('الطالب'),
+                TextColumn::make('student.name')->label('الطالب'),
                 TextColumn::make('date')->label('التاريخ')->date(),
                 TextColumn::make('status')->label('الحالة')
                     ->formatStateUsing(function ($state) {
@@ -119,7 +120,7 @@ class ProgressResource extends Resource
     public static function getGloballySearchableAttributes(): array
     {
         return [
-            'member.name',
+            'student.name',
             'date',
             'page',
             'lines_from',

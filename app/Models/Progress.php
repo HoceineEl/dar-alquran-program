@@ -11,11 +11,11 @@ class Progress extends Model
     use HasFactory;
 
     protected $fillable = [
-        'member_id', 'date', 'status', 'page', 'lines_from', 'lines_to'
+        'student_id', 'date', 'status', 'page', 'lines_from', 'lines_to'
     ];
 
-    public function member() : BelongsTo
+    public function student(): BelongsTo
     {
-        return $this->belongsTo(Member::class);
+        return $this->belongsTo(Student::class);
     }
 }
