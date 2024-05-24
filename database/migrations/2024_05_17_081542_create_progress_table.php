@@ -14,11 +14,13 @@ return new class extends Migration
         Schema::create('progress', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
+            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete()->nullOnDelete();
             $table->date('date');
             $table->enum('status', ['memorized', 'absent']);
-            $table->integer('page')->nullable();
+            $table->integer('ayah_id')->nullable();
             $table->integer('lines_from')->nullable();
             $table->integer('lines_to')->nullable();
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }

@@ -25,11 +25,16 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
-            ->id('admin')
-            ->path('admin')
+            ->id('quran-program')
+            ->path('quran-program')
             ->login()
             ->colors([
-                'primary' => Color::Emerald,
+                'primary' => Color::Purple,
+                'secondary' => Color::Gray,
+                'danger' => Color::Rose,
+                'warning' => Color::Yellow,
+                'success' => Color::Teal,
+                'info' => Color::Amber,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

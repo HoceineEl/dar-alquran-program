@@ -11,11 +11,22 @@ class Progress extends Model
     use HasFactory;
 
     protected $fillable = [
-        'student_id', 'date', 'status', 'page', 'lines_from', 'lines_to'
+        'student_id', 'date', 'status', 'ayah_id', 'lines_from', 'lines_to', 'notes', 'created_by',
+        'prog',
     ];
 
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
+    }
+
+    public function ayah(): BelongsTo
+    {
+        return $this->belongsTo(Ayah::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

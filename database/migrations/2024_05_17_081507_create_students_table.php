@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('type', ['two_lines', 'half_page']);
             $table->string('phone');
-            $table->integer('group')->default(1);
             $table->enum('sex', ['male', 'female'])->default('male');
+            $table->foreignId('group_id')->constrained()->onDelete('cascade');
+            $table->integer('student_progress')->nullable();
             $table->timestamps();
         });
     }

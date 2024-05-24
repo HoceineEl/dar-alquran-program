@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
+use App\Models\Group;
 use App\Models\Student;
 use Faker\Factory as Faker;
+use Illuminate\Database\Seeder;
 
 class StudentSeeder extends Seeder
 {
@@ -12,14 +13,17 @@ class StudentSeeder extends Seeder
     {
         $faker = Faker::create('ar_SA');
 
-        for ($i = 0; $i < 10; $i++) {
-            Student::create([
-                'name' => $faker->name,
-                'type' => $faker->randomElement(['two_lines', 'half_page']),
-                'phone' => $faker->phoneNumber,
-                'group' => '1',
-                'sex' => 'male',
-            ]);
+        $groups = Group::all();
+
+        foreach ($groups as $group) {
+            for ($i = 0; $i < rand(1, 10); $i++) {
+                Student::create([
+                    'name' => $faker->name,
+                    'group_id' => $group->id,
+                    'phone' => $faker->phoneNumber,
+                    'email' => $faker->unique()->safeEmail,
+                ]);
+            }
         }
     }
 }

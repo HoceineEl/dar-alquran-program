@@ -16,4 +16,11 @@ class EditProgress extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $data['created_by'] = auth()->id();
+
+        return $data;
+    }
 }

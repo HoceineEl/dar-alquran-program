@@ -3,11 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Classes\Core;
-use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\GroupResource\Pages;
+use App\Filament\Resources\GroupResource\RelationManagers\ManagersRelationManager;
+use App\Filament\Resources\GroupResource\RelationManagers\StudentsRelationManager;
+use App\Models\Group;
 use App\Models\Message;
-use App\Models\User;
+use App\Models\Student;
 use Filament\Forms;
-use Filament\Forms\Components\Actions\Action as ActionsAction;
+use Filament\Forms\Components\Actions\Action as FormAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -17,23 +20,21 @@ use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\Action as ActionsAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class UserResource extends Resource
+class GroupResource extends Resource
 {
-    protected static ?string $model = User::class;
+    protected static ?string $model = Group::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-user-group';
+    protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationLabel = 'المستخدمين';
+    protected static ?string $navigationLabel = 'المجموعات';
 
-    protected static ?string $modelLabel = 'مستخدم';
+    protected static ?string $modelLabel = 'مجموعة';
 
-    protected static ?string $pluralModelLabel = 'مستخدمين';
-
-    protected static ?string $recordTitleAttribute = 'name';
+    protected static ?string $pluralModelLabel = 'مجموعات';
 
     public static function form(Form $form): Form
     {
@@ -42,50 +43,66 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->label('الاسم')
                     ->required(),
-                Forms\Components\TextInput::make('email')
-                    ->label('البريد الإلكتروني')
-                    ->email()
-                    ->required(),
-                Forms\Components\Select::make('role')
-                    ->label('الدور')
+                Forms\Components\ToggleButtons::make('type')
+                    ->label('نوع الحفظ')
+                    ->inline()
                     ->options([
-                        'admin' => 'مشرف',
-                        'follower' => 'متابع',
+                        'two_lines' => 'سطران',
+                        'half_page' => 'نصف صفحة',
                     ])
-                    ->required(),
-                Forms\Components\TextInput::make('phone')
-                    ->label('رقم الهاتف')
-                    ->required(),
-            ]);
+                    ->default('two_lines'),
+            ])
+            ->disabled(!Core::canChange());
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('name')->label('الاسم'),
-                TextColumn::make('email')->label('البريد الإلكتروني'),
-                TextColumn::make('role')->label('الدور')
-                    ->formatStateUsing(function ($state) {
-                        return match ($state) {
-                            'admin' => 'مشرف',
-                            'follower' => 'متابع',
-                        };
-                    }),
-                TextColumn::make('phone')->label('الهاتف'),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('الاسم')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->label('نوع الحفظ')
+                    ->formatStateUsing(
+                        function ($state) {
+                            return match ($state) {
+                                'two_lines' => 'سطران',
+                                'half_page' => 'نصف صفحة',
+                            };
+                        },
+                    )
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('managers.name')
+                    ->label('المشرفون')
+                    ->badge()
+                    ->searchable(),
+                TextColumn::make('created_at')->label('تاريخ الإنشاء')
+                    ->date('Y-m-d H:i:s'),
             ])
             ->filters([
                 //
             ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ])
             ->headerActions([
-                Action::make('send_to_specific')
+                ActionsAction::make('send_whatsapp')
+                    ->label('أرسل عبر الواتساب للغائبين')
+                    ->icon('heroicon-o-users')
+                    ->action(function () {
+                        Core::sendMessageToAbsence();
+                    }),
+                ActionsAction::make('send_to_specific')
                     ->color('info')
                     ->icon('heroicon-o-cube')
-                    ->label('أرسل إلى مستخدمين محدد')
+                    ->label('أرسل لطلبة محددين')
                     ->form([
                         Select::make('students')
                             ->label('الطلبة')
-                            ->options(User::pluck('name', 'id')->toArray())
+                            ->options(Student::pluck('name', 'id')->toArray())
                             ->multiple()
                             ->required(),
                         ToggleButtons::make('message_type')
@@ -103,7 +120,7 @@ class UserResource extends Resource
                             ->hidden(fn (Get $get) => $get('message_type') === 'custom')
                             ->options(Message::pluck('name', 'id')->toArray())
                             ->hintActions([
-                                ActionsAction::make('create')
+                                FormAction::make('create')
                                     ->label('إنشاء قالب')
                                     ->slideOver()
                                     ->modalWidth('4xl')
@@ -135,40 +152,36 @@ class UserResource extends Resource
                             ->required(),
                     ])
                     ->action(function (array $data) {
-                        Core::sendMessageToSpecific($data, 'user');
+                        Core::sendMessageToSpecific($data);
                     }),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-            ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->disabled(Core::canChange()),
+                ]),
             ]);
     }
 
     public static function getRelations(): array
     {
         return [
-            //
+            StudentsRelationManager::class,
+            ManagersRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            'index' => Pages\ListGroups::route('/'),
+            'create' => Pages\CreateGroup::route('/create'),
+            'edit' => Pages\EditGroup::route('/{record}/edit'),
         ];
     }
 
-    public static function getGloballySearchableAttributes(): array
+    protected function getHeaderActions(): array
     {
-        return ['name', 'email', 'role', 'phone'];
-    }
-
-    public static function canAccess(): bool
-    {
-        return auth()->user()->role === 'admin';
+        return [];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\StudentResource\Pages;
+use App\Models\Group;
 use App\Models\Student;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,11 +15,18 @@ use Filament\Tables\Table;
 class StudentResource extends Resource
 {
     protected static ?string $model = Student::class;
+
     protected static ?string $navigationLabel = 'الطلاب';
+
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+
     protected static ?string $modelLabel = 'طالب';
+
     protected static ?string $pluralModelLabel = 'طلاب';
+
     protected static ?string $recordTitleAttribute = 'name';
+
+    protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Form $form): Form
     {
@@ -27,29 +35,13 @@ class StudentResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->label('الاسم')
                     ->required(),
-                Forms\Components\Select::make('type')
-                    ->label('نوع الحفظ')
-                    ->options([
-                        'two_lines' => 'سطران',
-                        'half_page' => 'نصف صفحة',
-                    ])
-                    ->default('two_lines')
-                    ->required(),
                 Forms\Components\TextInput::make('phone')
                     ->label('رقم الهاتف')
                     ->default('06')
                     ->required(),
-                Forms\Components\Select::make('group')
-                    ->options([
-                        '1' => 'المجموعة 1',
-                        '2' => 'المجموعة 2',
-                        '3' => 'المجموعة 3',
-                        '4' => 'المجموعة 4',
-                        '5' => 'المجموعة 5',
-                        '6' => 'المجموعة 6',
-                    ])
-                    ->label('المجموعة')
-                    ->default(1),
+                Forms\Components\Select::make('group_id')
+                    ->options(Group::all()->pluck('fullName', 'id')->toArray())
+                    ->label('المجموعة'),
                 Forms\Components\Select::make('sex')
                     ->label('الجنس')
                     ->options([
@@ -65,7 +57,7 @@ class StudentResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')->label('الاسم'),
-                TextColumn::make('type')->label('نوع الحفظ')
+                TextColumn::make('group.type')->label('نوع الحفظ')
                     ->formatStateUsing(function ($state) {
                         return match ($state) {
                             'two_lines' => 'سطران',
@@ -73,18 +65,8 @@ class StudentResource extends Resource
                         };
                     }),
                 TextColumn::make('phone')->label('رقم الهاتف'),
-                TextColumn::make('group')->label('المجموعة')
-                    ->icon('heroicon-o-users')
-                    ->formatStateUsing(function ($state) {
-                        return match ($state) {
-                            1 => 'المجموعة 1',
-                            2 => 'المجموعة 2',
-                            3 => 'المجموعة 3',
-                            4 => 'المجموعة 4',
-                            5 => 'المجموعة 5',
-                            6 => 'المجموعة 6',
-                        };
-                    }),
+                TextColumn::make('group.name')->label('المجموعة')
+                    ->badge(),
                 TextColumn::make('sex')->label('الجنس')
                     ->formatStateUsing(function ($state) {
                         return match ($state) {
@@ -119,6 +101,7 @@ class StudentResource extends Resource
             'edit' => Pages\EditStudent::route('/{record}/edit'),
         ];
     }
+
     public static function getGloballySearchableAttributes(): array
     {
         return ['name', 'phone'];
