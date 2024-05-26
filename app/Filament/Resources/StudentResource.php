@@ -26,7 +26,7 @@ class StudentResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static bool $shouldRegisterNavigation = false;
+    protected static bool $shouldRegisterNavigation = true;
 
     public static function form(Form $form): Form
     {

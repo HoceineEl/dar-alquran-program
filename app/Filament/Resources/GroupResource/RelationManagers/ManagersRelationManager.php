@@ -41,6 +41,7 @@ class ManagersRelationManager extends RelationManager
                     ->preloadRecordSelect()
                     ->multiple(),
             ])
+            ->emptyStateHeading(fn () => 'لم يتم إضافة مشرفين بعد.')
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DetachAction::make(),

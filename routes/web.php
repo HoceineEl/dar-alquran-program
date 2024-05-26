@@ -4,16 +4,19 @@ use App\Models\Ayah;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/test', function () {
-    $ayahs = Ayah::limit(80)->get();
-    // i want to get the count of lines for each page using the last line number of each page 
-    // but ther is some pages that has surah names or multiple ones so i will get the max line number for each page then calcuate the missing lines from this page between 1 and 15 then do 15 - max line number for each page
+    // Fetch all ayahs grouped by page number
+    $ayahsByPage = Ayah::all()->groupBy('page_number');
 
-    foreach ($ayahs as $ayah) {
-        $lines = Ayah::where('page_number', $ayah->page_number)->distinct('line_end')->pluck('line_end');
-        $linesCount = $lines->count();
-        $maxLine = $lines->max();
-        $missing = $linesCount - $maxLine;
-        dump($lines, $maxLine, $linesCount, $missing);
+    // Calculate lines_count for each page and update the records
+    foreach ($ayahsByPage as $pageNumber => $ayahs) {
+        $maxLine = $ayahs->max('line_end');
+        // Count the number of ayah_no = 1 on this page
+        $ayah1Count = $ayahs->where('ayah_no', 1)->count();
+        if ($ayah1Count > 0) {
+            $maxLine -= (2 * $ayah1Count);
+        }
+        $linesCount = $maxLine;
+        Ayah::where('page_number', $pageNumber)->update(['lines_count' => $linesCount]);
     }
 });
 

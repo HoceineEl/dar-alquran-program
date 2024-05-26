@@ -33,17 +33,19 @@ class AyahSeeder extends Seeder
             ]);
         }
 
+        // Fetch all ayahs grouped by page number
+        $ayahsByPage = Ayah::all()->groupBy('page_number');
+
         // Calculate lines_count for each page and update the records
-        $pages = Ayah::select('page_number')->distinct()->get();
-        foreach ($pages as $page) {
-            $maxLine = Ayah::where('page_number', $page->page_number)->max('line_end');
-            // Check if the page contains ayah_no = 1
-            $containsAyah1 = Ayah::where('page_number', $page->page_number)->where('ayah_no', 1)->exists();
-            if ($containsAyah1) {
-                $maxLine -= 2;
+        foreach ($ayahsByPage as $pageNumber => $ayahs) {
+            $maxLine = $ayahs->max('line_end');
+            // Count the number of ayah_no = 1 on this page
+            $ayah1Count = $ayahs->where('ayah_no', 1)->count();
+            if ($ayah1Count > 0) {
+                $maxLine -= (2 * $ayah1Count);
             }
             $linesCount = $maxLine;
-            Ayah::where('page_number', $page->page_number)->update(['lines_count' => $linesCount]);
+            Ayah::where('page_number', $pageNumber)->update(['lines_count' => $linesCount]);
         }
     }
 }

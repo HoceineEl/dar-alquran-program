@@ -117,7 +117,7 @@ class StudentsRelationManager extends RelationManager
     public static function progressForm(Student $student): array
     {
         $student->load('group');
-        $lastMemoProgress = Progress::with('student', 'ayah', 'student.group')
+        $lastMemoProgress = Progress::with('student', 'page', 'student.group')
             ->where('student_id', $student->id)
             ->where('status', 'memorized')
             ->latest()
@@ -129,7 +129,7 @@ class StudentsRelationManager extends RelationManager
         $nextLinesTo = $nextLinesFrom + $linesPerAyah;
 
         if ($lastMemoProgress) {
-            $lastAyah = $lastMemoProgress->ayah;
+            $lastAyah = $lastMemoProgress->page;
             $nextAyah = $lastAyah->page_number;
             $nextLinesFrom = $lastMemoProgress->line_end + 1;
             $nextLinesTo = $nextLinesFrom + $linesPerAyah;
@@ -142,7 +142,7 @@ class StudentsRelationManager extends RelationManager
             }
         }
 
-        $ayah_id = Ayah::where('page_number', $nextAyah)->first()->id;
+        $page_id = Ayah::where('page_number', $nextAyah)->first()->id;
         $lines_from = $nextLinesFrom;
         $lines_to = $nextLinesTo;
 
@@ -181,12 +181,12 @@ class StudentsRelationManager extends RelationManager
                 ->columns(3)
                 ->hidden(fn (Get $get) => $get('status') !== 'memorized')
                 ->schema([
-                    Select::make('ayah_id')
+                    Select::make('page_id')
                         ->label('الصفحة')
-                        ->options(fn () => Ayah::get()->mapWithKeys(fn (Ayah $ayah) => [$ayah->id => $ayah->page_number . ' - ' . $ayah->surah_name]))
-                        ->getOptionLabelFromRecordUsing(fn (Model $record) => "{$record->ayahName}")
+                        ->options(fn () => Ayah::get()->mapWithKeys(fn (Ayah $page) => [$page->id => $page->page_number . ' - ' . $page->surah_name . '"' . $page->ayah_text . '"']))
+                        ->getOptionLabelFromRecordUsing(fn (Model $record) => "{$record->pageName}")
                         ->preload()
-                        ->default(fn () => $ayah_id)
+                        ->default(fn () => $page_id)
                         ->reactive()
                         ->optionsLimit(700)
                         ->searchable()
@@ -196,9 +196,9 @@ class StudentsRelationManager extends RelationManager
                         ->reactive()
                         ->default(fn () => $lines_from)
                         ->options(function (Get $get) {
-                            $ayah = Ayah::find($get('ayah_id'));
-                            if ($ayah) {
-                                return range(1, $ayah->lines_count);
+                            $page = Ayah::find($get('page_id'));
+                            if ($page) {
+                                return range(1, $page->lines_count);
                             }
                             return range(1, 15);
                         })
@@ -206,9 +206,9 @@ class StudentsRelationManager extends RelationManager
                     Select::make('lines_to')
                         ->reactive()
                         ->options(function (Get $get) {
-                            $ayah = Ayah::find($get('ayah_id'));
-                            if ($ayah) {
-                                return range(1, $ayah->lines_count);
+                            $page = Ayah::find($get('page_id'));
+                            if ($page) {
+                                return range(1, $page->lines_count);
                             }
                             return range(1, 15);
                         })

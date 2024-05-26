@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete()->nullOnDelete();
             $table->date('date');
+            // $table->string('comment');
             $table->enum('status', ['memorized', 'absent']);
             $table->integer('ayah_id')->nullable();
             $table->integer('lines_from')->nullable();
