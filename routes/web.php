@@ -3,6 +3,8 @@
 use App\Models\Ayah;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', fn () => redirect('/quran-program'));
+
 Route::get('/test', function () {
     // Fetch all ayahs grouped by page number
     $ayahsByPage = Ayah::all()->groupBy('page_number');

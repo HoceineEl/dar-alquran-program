@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\AyahResource\Pages;
+namespace App\Filament\Resources\PageResource\Pages;
 
-use App\Filament\Resources\AyahResource;
+use App\Filament\Resources\PageResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditAyah extends EditRecord
+class EditPage extends EditRecord
 {
-    protected static string $resource = AyahResource::class;
+    protected static string $resource = PageResource::class;
 
     protected function getHeaderActions(): array
     {

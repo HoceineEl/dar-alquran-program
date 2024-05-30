@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Models\Group;
 use App\Models\Student;
+use App\Tables\Columns\StudentProgress;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -67,6 +68,7 @@ class StudentResource extends Resource
                 TextColumn::make('phone')->label('رقم الهاتف'),
                 TextColumn::make('group.name')->label('المجموعة')
                     ->badge(),
+                StudentProgress::make('progress')->label('التقدم'),
                 TextColumn::make('sex')->label('الجنس')
                     ->formatStateUsing(function ($state) {
                         return match ($state) {

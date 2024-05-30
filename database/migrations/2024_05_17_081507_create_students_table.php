@@ -17,8 +17,7 @@ return new class extends Migration
             $table->string('phone');
             $table->enum('sex', ['male', 'female'])->default('male');
             $table->foreignId('group_id')->constrained()->onDelete('cascade');
-            // $table->string('city');
-            $table->integer('student_progress')->nullable();
+            $table->string('city')->nullable();
             $table->timestamps();
         });
     }

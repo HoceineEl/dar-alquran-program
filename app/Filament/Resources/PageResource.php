@@ -2,8 +2,13 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AyahResource\Pages;
+use App\Filament\Resources\PageResource\Pages;
+use App\Filament\Resources\PageResource\Pages\CreatePage;
+use App\Filament\Resources\PageResource\Pages\EditPage;
+use App\Filament\Resources\PageResource\Pages\ListPages;
+use App\Filament\Resources\PageResource\RelationManagers\AyahsRelationManager;
 use App\Models\Ayah;
+use App\Models\Page;
 use Filament\FontProviders\GoogleFontProvider;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -13,9 +18,9 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class AyahResource extends Resource
+class PageResource extends Resource
 {
-    protected static ?string $model = Ayah::class;
+    protected static ?string $model = Page::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document';
 
@@ -29,20 +34,14 @@ class AyahResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('number')
+                    ->label('رقم الصفحة')
+                    ->required(),
                 Forms\Components\Placeholder::make('surah_name')
                     ->content(fn ($record) => $record->surah_name)
                     ->label('اسم السورة'),
-                Forms\Components\Placeholder::make('ayah_text')
-                    ->content(fn ($record) => $record->ayah_text)
-                    ->label('نص الآية'),
-                Forms\Components\TextInput::make('page_number')
-                    ->label('رقم الصفحة')
-                    ->required(),
-                Forms\Components\TextInput::make('line_start')
-                    ->label('سطر البداية')
-                    ->required(),
-                Forms\Components\TextInput::make('line_end')
-                    ->label('سطر النهاية')
+                Forms\Components\TextInput::make('lines_count')
+                    ->label('عدد الأسطر')
                     ->required(),
             ]);
     }
@@ -51,28 +50,14 @@ class AyahResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('ayah_text')
+                TextColumn::make('number')
                     ->searchable()
-                    ->label('نص الآية')
-                    ->fontFamily('Amiri Quran')
+                    ->label('رقم الصفحة')
                     ->sortable(),
                 TextColumn::make('surah_name')
                     ->searchable()
                     ->label('اسم السورة')
-                    ->fontFamily('Amiri Quran')
-                    ->sortable(),
-                TextColumn::make('page_number')
-                    ->searchable()
-                    ->label('رقم الصفحة')
-                    ->sortable(),
-                TextColumn::make('line_start')
-                    ->searchable()
-                    ->label('سطر البداية')
-                    ->sortable(),
-                TextColumn::make('line_end')
-                    ->searchable()
-                    ->label('سطر النهاية')
-                    ->sortable(),
+                    ->fontFamily('Amiri Quran'),
                 TextColumn::make('lines_count')
                     ->searchable()
                     ->label('عدد الأسطر')
@@ -94,26 +79,23 @@ class AyahResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            AyahsRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListAyahs::route('/'),
-            'create' => Pages\CreateAyah::route('/create'),
-            'edit' => Pages\EditAyah::route('/{record}/edit'),
+            'index' => ListPages::route('/'),
+            'create' => CreatePage::route('/create'),
+            'edit' => EditPage::route('/{record}/edit'),
         ];
     }
 
     public static function getGloballySearchableAttributes(): array
     {
         return [
-            'page_number',
-            'ayah_text',
-            'line_start',
-            'line_end',
+            'number',
             'surah_name',
         ];
     }

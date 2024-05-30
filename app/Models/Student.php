@@ -12,10 +12,10 @@ class Student extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'phone', 'group', 'sex',
+        'name', 'phone', 'group', 'sex', 'city', 'group_id'
     ];
 
-    public function progress(): HasMany
+    public function progresses(): HasMany
     {
         return $this->hasMany(Progress::class);
     }
@@ -23,5 +23,12 @@ class Student extends Model
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class);
+    }
+
+    public function getProgressAttribute(): int
+    {
+        $page = $this->progresses->last()->prog ?? 0;
+        $progress = $page    * 100 / 604;
+        return $progress;
     }
 }

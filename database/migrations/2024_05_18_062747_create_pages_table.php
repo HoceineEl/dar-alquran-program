@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ayahs', function (Blueprint $table) {
+        Schema::create('pages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('page_id')->constrained()->onDelete('cascade');
-            $table->integer('line_start');
-            $table->integer('line_end');
-            $table->text('ayah_text');
-            $table->integer('ayah_no');
+            $table->integer('number');
+            $table->string('surah_name');
+            $table->integer('lines_count');
+            $table->integer('jozz');
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ayahs');
+        Schema::dropIfExists('pages');
     }
 };

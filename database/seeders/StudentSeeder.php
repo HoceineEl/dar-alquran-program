@@ -21,7 +21,7 @@ class StudentSeeder extends Seeder
                     'name' => $faker->name,
                     'group_id' => $group->id,
                     'phone' => $faker->phoneNumber,
-                    'email' => $faker->unique()->safeEmail,
+                    'city' => $faker->city,
                 ]);
             }
         }

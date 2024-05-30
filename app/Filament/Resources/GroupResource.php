@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Classes\Core;
 use App\Filament\Resources\GroupResource\Pages;
 use App\Filament\Resources\GroupResource\RelationManagers\ManagersRelationManager;
+use App\Filament\Resources\GroupResource\RelationManagers\ProgressesRelationManager;
 use App\Filament\Resources\GroupResource\RelationManagers\StudentsRelationManager;
 use App\Models\Group;
 use App\Models\Message;
@@ -167,6 +168,7 @@ class GroupResource extends Resource
     {
         return [
             StudentsRelationManager::class,
+            ProgressesRelationManager::class,
             ManagersRelationManager::class,
         ];
     }

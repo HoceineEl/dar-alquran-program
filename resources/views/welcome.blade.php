@@ -20,6 +20,12 @@
         class="relative flex items-top justify-center min-h-screen bg-gray-100 dark:bg-gray-900 sm:items-center sm:pt-0">
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
             <div class="flex justify-center pt-8 sm:justify-start sm:pt-0">
+                <span class="hidden border-green-500 border-yellow-500 border-orange-500 border-red-500">
+                    <div class="w-10 h-10 flex justify-center items-center border-4 {{ $borderColor }}"
+                        style="border-width: {{ $borderWidth }}">
+                        <span> {{ $progress }}%</span>
+                    </div>
+                </span>
                 <h1 class="text-6xl font-bold text-center">مرحبا بك في لارافيل</h1>
             </div>
         </div>

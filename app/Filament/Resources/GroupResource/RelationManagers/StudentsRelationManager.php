@@ -2,19 +2,11 @@
 
 namespace App\Filament\Resources\GroupResource\RelationManagers;
 
-use App\Models\Ayah;
+use App\Helpers\ProgressFormHelper;
 use App\Models\Progress;
 use App\Models\Student;
 use Filament\Forms;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\MarkdownEditor;
-use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
-use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -75,6 +67,7 @@ class StudentsRelationManager extends RelationManager
                             'female' => 'أنثى',
                         };
                     }),
+                TextColumn::make('city')->label('المدينة'),
             ])
             ->filters([
                 //
@@ -91,13 +84,15 @@ class StudentsRelationManager extends RelationManager
                     Tables\Actions\ViewAction::make(),
                 ]),
                 Tables\Actions\Action::make('progress')
-                    ->label('التقدم اليومي')
                     ->icon('heroicon-o-chart-pie')
                     ->color('success')
                     ->modal()
+                    ->disabled(fn ($record) => Progress::where('student_id', $record->id)->whereDate('date', now()->format('Y-m-d'))->exists())
+                    ->color(fn ($record) => Progress::where('student_id', $record->id)->whereDate('date', now()->format('Y-m-d'))->exists() ? 'gray' : 'success')
+                    ->label(fn ($record) => Progress::where('student_id', $record->id)->whereDate('date', now()->format('Y-m-d'))->exists() ? 'تم إضافة التقدم' : 'إضافة التقدم')
                     ->slideOver()
                     ->form(function (Model $student) {
-                        return self::progressForm($student);
+                        return ProgressFormHelper::getProgressFormSchema($student);
                     })
                     ->action(function (array $data, Model $student) {
                         $data['created_by'] = auth()->id();
@@ -113,113 +108,5 @@ class StudentsRelationManager extends RelationManager
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
-    }
-    public static function progressForm(Student $student): array
-    {
-        $student->load('group');
-        $lastMemoProgress = Progress::with('student', 'page', 'student.group')
-            ->where('student_id', $student->id)
-            ->where('status', 'memorized')
-            ->latest()
-            ->first();
-        $nextAyah = 1;
-        $nextLinesFrom = 1;
-        $groupType = $student->group->type;
-        $linesPerAyah = $groupType === 'two_lines' ? 2 : 7;
-        $nextLinesTo = $nextLinesFrom + $linesPerAyah;
-
-        if ($lastMemoProgress) {
-            $lastAyah = $lastMemoProgress->page;
-            $nextAyah = $lastAyah->page_number;
-            $nextLinesFrom = $lastMemoProgress->line_end + 1;
-            $nextLinesTo = $nextLinesFrom + $linesPerAyah;
-
-            $lastAyahLinesCount = $lastAyah->lines_count;
-            if ($nextLinesTo > $lastAyahLinesCount) {
-                $nextAyah += 1;
-                $nextLinesFrom = 1;
-                $nextLinesTo = $nextLinesFrom + $linesPerAyah;
-            }
-        }
-
-        $page_id = Ayah::where('page_number', $nextAyah)->first()->id;
-        $lines_from = $nextLinesFrom;
-        $lines_to = $nextLinesTo;
-
-        return [
-            Grid::make(2)
-                ->schema([
-                    Placeholder::make('student_name')
-                        ->label('الطالب')
-                        ->content($student->name . ' - ' . $student->phone),
-                    DatePicker::make('date')
-                        ->label('التاريخ')
-                        ->default(now())
-                        ->displayFormat('Y-m-d')
-                        ->required(),
-                ]),
-            ToggleButtons::make('status')
-                ->label('الحالة')
-                ->inline()
-                ->reactive()
-                ->icons([
-                    'memorized' => 'heroicon-o-check-circle',
-                    'absent' => 'heroicon-o-x-circle',
-                ])
-                ->grouped()
-                ->default('memorized')
-                ->colors([
-                    'memorized' => 'primary',
-                    'absent' => 'danger',
-                ])
-                ->options([
-                    'memorized' => 'أتم الحفظ',
-                    'absent' => 'غائب',
-                ])
-                ->required(),
-            Section::make()
-                ->columns(3)
-                ->hidden(fn (Get $get) => $get('status') !== 'memorized')
-                ->schema([
-                    Select::make('page_id')
-                        ->label('الصفحة')
-                        ->options(fn () => Ayah::get()->mapWithKeys(fn (Ayah $page) => [$page->id => $page->page_number . ' - ' . $page->surah_name . '"' . $page->ayah_text . '"']))
-                        ->getOptionLabelFromRecordUsing(fn (Model $record) => "{$record->pageName}")
-                        ->preload()
-                        ->default(fn () => $page_id)
-                        ->reactive()
-                        ->optionsLimit(700)
-                        ->searchable()
-                        ->required(),
-                    Select::make('lines_from')
-                        ->label('من السطر')
-                        ->reactive()
-                        ->default(fn () => $lines_from)
-                        ->options(function (Get $get) {
-                            $page = Ayah::find($get('page_id'));
-                            if ($page) {
-                                return range(1, $page->lines_count);
-                            }
-                            return range(1, 15);
-                        })
-                        ->required(),
-                    Select::make('lines_to')
-                        ->reactive()
-                        ->options(function (Get $get) {
-                            $page = Ayah::find($get('page_id'));
-                            if ($page) {
-                                return range(1, $page->lines_count);
-                            }
-                            return range(1, 15);
-                        })
-                        ->default(fn () => $lines_to)
-                        ->label('إلى السطر')
-                        ->required(),
-                ]),
-            MarkdownEditor::make('notes')
-                ->label('ملاحظات')
-                ->columnSpanFull()
-                ->placeholder('أدخل ملاحظاتك هنا'),
-        ];
     }
 }

@@ -1,7 +1,6 @@
 @php
-    $progress = $getState(); // Get the student's progress
+    $progress = $getState() ; // Get the student's progress
 $borderColor = 'border-gray-300'; // Default border color
-
 // Change border color based on progress
 if ($progress >= 80) {
     $borderColor = 'border-green-500';
