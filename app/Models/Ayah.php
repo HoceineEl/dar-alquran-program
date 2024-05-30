@@ -25,11 +25,11 @@ class Ayah extends Model
 
     public function getAyahNameAttribute(): string
     {
-        return 'الصفحة ' . $this->page_number . ', ' . $this->surah_name;
+        return 'الصفحة '.$this->page_number.', '.$this->surah_name;
     }
 
     public function getAyaTextAttribute(): string
     {
-        return $this->aya_text . ' (' . $this->line_start . ' - ' . $this->line_end . ') ,' . $this->surah_name . ' (' . $this->page_number . ')';
+        return $this->aya_text.' ('.$this->line_start.' - '.$this->line_end.') ,'.$this->surah_name.' ('.$this->page_number.')';
     }
 }

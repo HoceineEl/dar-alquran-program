@@ -36,6 +36,6 @@ class Group extends Model
     {
         $type = $this->type === 'two_lines' ? 'سطرين' : 'نصف صفحة';
 
-        return $this->name . ' - ' . $type;
+        return $this->name.' - '.$type;
     }
 }

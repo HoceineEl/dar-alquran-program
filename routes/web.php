@@ -26,9 +26,6 @@ use App\Models\Student;
 use App\Services\WhatsAppService;
 use Carbon\Carbon;
 
-
-
-
 Route::get('/send-whatsapp', function () {
     $whatsAppService = new WhatsAppService();
     $students = Student::with(['progress' => function ($query) {

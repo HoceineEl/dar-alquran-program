@@ -12,7 +12,7 @@ class Student extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'phone', 'group', 'sex', 'city', 'group_id'
+        'name', 'phone', 'group', 'sex', 'city', 'group_id',
     ];
 
     public function progresses(): HasMany
@@ -28,7 +28,8 @@ class Student extends Model
     public function getProgressAttribute(): int
     {
         $page = $this->progresses->last()->prog ?? 0;
-        $progress = $page    * 100 / 604;
+        $progress = $page * 100 / 604;
+
         return $progress;
     }
 }

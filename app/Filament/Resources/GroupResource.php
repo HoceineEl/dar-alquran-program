@@ -53,7 +53,7 @@ class GroupResource extends Resource
                     ])
                     ->default('two_lines'),
             ])
-            ->disabled(!Core::canChange());
+            ->disabled(! Core::canChange());
     }
 
     public static function table(Table $table): Table

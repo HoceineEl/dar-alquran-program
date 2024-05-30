@@ -7,7 +7,6 @@ use App\Filament\Resources\ProgressResource\Pages\EditProgress;
 use App\Filament\Resources\ProgressResource\Pages\ListProgress;
 use App\Helpers\ProgressFormHelper;
 use App\Models\Progress;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -78,7 +77,7 @@ class ProgressResource extends Resource
                     ->default(now()->format('Y-m-d')),
                 SelectFilter::make('group')
                     ->label('المجموعة')
-                    ->relationship('student.group', 'name')
+                    ->relationship('student.group', 'name'),
             ], FiltersLayout::AboveContent)
             ->actions([
                 Tables\Actions\EditAction::make(),

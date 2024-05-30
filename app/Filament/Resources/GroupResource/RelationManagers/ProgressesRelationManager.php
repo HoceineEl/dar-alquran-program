@@ -5,7 +5,6 @@ namespace App\Filament\Resources\GroupResource\RelationManagers;
 use App\Helpers\ProgressFormHelper;
 use App\Models\Page;
 use App\Models\Progress;
-use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\MarkdownEditor;
@@ -25,9 +24,13 @@ use Illuminate\Database\Eloquent\Model;
 class ProgressesRelationManager extends RelationManager
 {
     protected static string $relationship = 'progresses';
+
     protected static ?string $title = 'التقدم';
+
     protected static ?string $navigationLabel = 'التقدم';
+
     protected static ?string $modelLabel = 'تقدم';
+
     protected static ?string $pluralModelLabel = 'تقدمات';
 
     public function form(Form $form): Form
@@ -69,7 +72,8 @@ class ProgressesRelationManager extends RelationManager
                     ->color(Color::Teal)
                     ->form(function () {
                         $students = $this->ownerRecord->students->pluck('name', 'id');
-                        return  [
+
+                        return [
                             Grid::make()
                                 ->schema([
                                     Select::make('students')
@@ -134,6 +138,7 @@ class ProgressesRelationManager extends RelationManager
                                             if ($page) {
                                                 return range(1, $page->lines_count);
                                             }
+
                                             return range(1, 15);
                                         })
                                         ->required(),
@@ -144,6 +149,7 @@ class ProgressesRelationManager extends RelationManager
                                             if ($page) {
                                                 return range(1, $page->lines_count);
                                             }
+
                                             return range(1, 15);
                                         })
                                         ->label('إلى السطر')
@@ -154,7 +160,7 @@ class ProgressesRelationManager extends RelationManager
                                 ->columnSpanFull()
                                 ->placeholder('أدخل ملاحظاتك هنا'),
                         ];
-                    })
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()

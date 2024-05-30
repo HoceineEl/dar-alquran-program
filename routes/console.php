@@ -12,7 +12,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-
 Artisan::command('send-whatsapp', function () {
     Core::sendMessageToAbsence();
 })->purpose('Send WhatsApp messages to students with absences');

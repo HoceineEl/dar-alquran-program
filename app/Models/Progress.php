@@ -12,7 +12,7 @@ class Progress extends Model
 
     protected $fillable = [
         'student_id', 'date', 'status', 'page_id', 'lines_from', 'lines_to', 'notes', 'created_by',
-        'prog', 'comment'
+        'prog', 'comment',
     ];
 
     protected static function boot(): void
