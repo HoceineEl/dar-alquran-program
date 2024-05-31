@@ -88,6 +88,25 @@ class Core
         }
     }
 
+    public static function sendMessageToStudent(Student $student)
+    {
+        $whatsAppService = new WhatsAppService();
+        $res = $whatsAppService->sendMessage($student);
+        if (isset($res['contacts'])) {
+            Notification::make()
+                ->title('تم إرسال رسالة واتساب للطالب ' . $student->name)
+                ->color('success')
+                ->icon('heroicon-o-check-circle')
+                ->send();
+        } else {
+            Notification::make()
+                ->title('حدث خطأ أثناء إرسال رسالة واتساب للطالب ' . $student->name)
+                ->color('danger')
+                ->icon('heroicon-o-x-circle')
+                ->send();
+        }
+    }
+
     public static function canChange(): bool
     {
         return auth()->user()->role === 'admin';

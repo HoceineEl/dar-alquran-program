@@ -50,6 +50,9 @@ class StudentResource extends Resource
                         'female' => 'أنثى',
                     ])
                     ->default('male'),
+                Forms\Components\TextInput::make('city')
+                    ->label('المدينة')
+                    ->required(),
             ]);
     }
 
@@ -76,6 +79,7 @@ class StudentResource extends Resource
                             'female' => 'أنثى',
                         };
                     }),
+                TextColumn::make('city')->label('المدينة'),
             ])
             ->filters([
                 //

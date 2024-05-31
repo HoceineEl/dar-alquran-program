@@ -62,6 +62,7 @@ class StudentsRelationManager extends RelationManager
                 TextColumn::make('phone')
                     ->url(fn ($record) => "tel:{$record->phone}")
                     ->badge()
+                    ->icon(fn ($record) => $record->needsCall() ? 'heroicon-o-exclamation-circle' : 'heroicon-o-check-circle')
                     ->color(fn (Student $record) => $record->needsCall() ? 'danger' : 'success')
                     ->label('رقم الهاتف'),
                 TextColumn::make('sex')->label('الجنس')
@@ -87,6 +88,12 @@ class StudentsRelationManager extends RelationManager
                     Tables\Actions\DeleteAction::make(),
                     Tables\Actions\ViewAction::make(),
                 ]),
+                Tables\Actions\Action::make('send_whatsapp_msg')
+                    ->color('success')
+                    ->iconButton()
+                    ->icon('heroicon-o-chat-bubble-oval-left')
+                    ->label('إرسال رسالة واتساب')
+                    ->url(fn ($record) => "https://wa.me/{$record->phone}?text=" . urlencode('السلام عليكم'), true),
                 Tables\Actions\Action::make('progress')
                     ->icon('heroicon-o-chart-pie')
                     ->color('success')

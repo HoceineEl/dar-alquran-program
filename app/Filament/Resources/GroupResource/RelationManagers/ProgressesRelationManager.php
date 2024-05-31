@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\GroupResource\RelationManagers;
 
+use App\Classes\Core;
 use App\Helpers\ProgressFormHelper;
 use App\Models\Page;
 use App\Models\Progress;
 use App\Models\Student;
+use App\Services\WhatsAppService;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\MarkdownEditor;
@@ -14,6 +16,7 @@ use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Colors\Color;
 use Filament\Tables;
@@ -51,6 +54,7 @@ class ProgressesRelationManager extends RelationManager
                 TextColumn::make('student.name')
                     ->label('الطالب'),
                 TextColumn::make('page.number')
+                    ->getStateUsing(fn (Progress $record) => $record->page !== null ? "{$record->page->number} - {$record->page->surah_name}" : 'غائب')
                     ->label('الصفحة'),
                 TextColumn::make('status')
                     ->formatStateUsing(function ($state) {
@@ -61,14 +65,41 @@ class ProgressesRelationManager extends RelationManager
                     })
                     ->label('الحالة'),
                 TextColumn::make('lines_from')
-                    ->getStateUsing(fn (Progress $record) => $record->lines_from + 1)
+                    ->getStateUsing(fn (Progress $record) => $record->lines_from !== null ? $record->lines_from + 1 : 'غائب')
                     ->label('من'),
                 TextColumn::make('lines_to')
-                    ->getStateUsing(fn (Progress $record) => $record->lines_to + 1)
+                    ->getStateUsing(fn (Progress $record) => $record->lines_to !== null ? $record->lines_to + 1 : 'غائب')
                     ->label('إلى'),
+                TextColumn::make('createdBy.name')->label('سجل بواسطة'),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
+                Action::make('make_others_as_absent')
+                    ->label('تسجيل البقية كغائبين اليوم')
+                    ->color('danger')
+                    ->action(function () {
+                        $selectedDate = $this->tableFilters['date']['value'] ?? now()->format('Y-m-d');
+                        $this->ownerRecord->students->filter(function ($student) use ($selectedDate) {
+                            return $student->progresses->where('date', $selectedDate)->count() == 0;
+                        })->each(function ($student) use ($selectedDate) {
+                            $student->progresses()->create([
+                                'date' => $selectedDate,
+                                'status' => 'absent',
+                                'comment' => 'message_sent',
+                                'page_id' => null,
+                                'lines_from' => null,
+                                'lines_to' => null,
+                            ]);
+                            Notification::make()
+                                ->title('تم تسجيل الطالب ' . $student->name . ' كغائب اليوم')
+                                ->color('success')
+                                ->icon('heroicon-o-check-circle')
+                                ->send();
+                            if ($selectedDate == now()->format('Y-m-d')) {
+                                Core::sendMessageToStudent($student);
+                            }
+                        });
+                    }),
                 Action::make('group')
                     ->label('تسجيل تقدم جماعي')
                     ->color(Color::Teal)

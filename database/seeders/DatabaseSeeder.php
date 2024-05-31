@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
             GroupSeeder::class,
             StudentSeeder::class,
             AyahSeeder::class,
-            ProgressSeeder::class,
+            // ProgressSeeder::class,
         ]);
     }
 }

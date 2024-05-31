@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Classes\Core;
 use App\Helpers\ProgressFormHelper;
 use App\Models\Progress;
 use App\Models\Student;
+use App\Models\User;
 use Carbon\Carbon;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
@@ -19,16 +19,18 @@ class ProgressSeeder extends Seeder
 
         foreach ($students as $student) {
             $pageData = ProgressFormHelper::calculateNextProgress($student);
+            $managers = $student->group->managers->pluck('id')->toArray();
+
             for ($j = 0; $j < 10; $j++) {
-                Progress::create([
-                    'student_id' => $student->id,
+                $student->progresses()->create([
                     'date' => Carbon::now()->subDays($j)->toDateString(),
                     'status' => $faker->randomElement(['memorized', 'absent']),
-                    'ayah' => $faker->numberBetween(1, 20),
                     'page_id' => $pageData['page_id'] ?? $j + 1,
+                    'comment' => $faker->sentence,
                     'lines_from' => $pageData['lines_from'],
                     'lines_to' => $pageData['lines_to'],
-                ]);
+                    'notes' => $faker->sentence,
+                ])->createdBy()->associate(User::find($faker->randomElement($managers)))->save();
             }
         }
     }

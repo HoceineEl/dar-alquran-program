@@ -16,7 +16,7 @@ class Student extends Model
         'name', 'phone', 'group', 'sex', 'city', 'group_id',
     ];
 
-    protected $with = ['progresses', 'group', 'progresses.page'];
+    protected $with = ['progresses', 'group', 'progresses.page', 'group.managers'];
 
     public function progresses(): HasMany
     {
@@ -28,19 +28,16 @@ class Student extends Model
         return $this->belongsTo(Group::class);
     }
 
-    public function getProgressAttribute(): int
+    public function getProgressAttribute(): float
     {
-        $page = $this->progresses->last()->prog ?? 0;
+        $page = $this->progresses->last()->page->number ?? 0;
         $progress = $page * 100 / 604;
-
-        return $progress;
+        return round($progress, 2);
     }
 
     public function needsCall(): bool
     {
-        $threeDaysAgo = Carbon::now()->subDays(3);
-
-        $recentProgresses = $this->progresses()->where('date', '>=', $threeDaysAgo)->get();
+        $recentProgresses = $this->progresses()->latest()->take(3)->get();
 
         $absentCount = $recentProgresses->where('status', 'absent')->count();
 
