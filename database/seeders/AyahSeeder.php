@@ -19,41 +19,45 @@ class AyahSeeder extends Seeder
         $jsonData = File::get($jsonPath);
         $ayahs = json_decode($jsonData, true);
 
-        // Insert data into the database
-        foreach ($ayahs as $ayahData) {
-            Ayah::create([
-                'id' => $ayahData['id'],
-                'page_number' => $ayahData['page'],
-                'line_start' => $ayahData['line_start'],
-                'line_end' => $ayahData['line_end'],
-                'surah_name' => $ayahData['sura_name_ar'],
-                'ayah_text' => $ayahData['aya_text'],
-                'ayah_no' => $ayahData['aya_no'],
-            ]);
-        }
+        // Group ayahs by page number
+        $ayahsByPage = collect($ayahs)->groupBy('page');
 
-        // Fetch all ayahs grouped by page number
-        $ayahsByPage = Ayah::all()->groupBy('page_number');
-
-        // Calculate lines_count for each page and create/update Page records
+        // Create pages and ayahs
+        $nexPageMinOne = false;
         foreach ($ayahsByPage as $pageNumber => $ayahs) {
-            $maxLine = $ayahs->max('line_end');
-            // Count the number of ayah_no = 1 on this page
-            $ayah1Count = $ayahs->where('ayah_no', 1)->count();
+            // Calculate lines_count for the page
+            $maxLine = collect($ayahs)->max('line_end');
+            $ayah1Count = collect($ayahs)->where('aya_no', 1)->count();
+            if ($nexPageMinOne) {
+                $linesCount = $maxLine - 1;
+                $ayah1Count -= 1;
+            }
             $linesCount = $maxLine - (2 * $ayah1Count);
+            if ($maxLine == 15) {
+                $nexPageMinOne = false;
+            } else if ($maxLine == 14) {
+                $nexPageMinOne = true;
+            }
 
-            // Create or update the Page record
-            $page = Page::updateOrCreate(
-                ['number' => $pageNumber],
-                [
-                    'surah_name' => $ayahs->first()->surah_name,
-                    'lines_count' => $linesCount,
-                    'jozz' => $ayahs->first()->jozz,
-                ]
-            );
 
-            // Update the page_id for each Ayah record
-            Ayah::where('page_number', $pageNumber)->update(['page_id' => $page->id]);
+            // Create the Page record
+            $page = Page::create([
+                'number' => $pageNumber,
+                'surah_name' => $ayahs[0]['sura_name_ar'],
+                'lines_count' => $linesCount,
+                'jozz' => $ayahs[0]['jozz'],
+            ]);
+
+            // Create the Ayah records
+            foreach ($ayahs as $ayahData) {
+                Ayah::create([
+                    'page_id' => $page->id,
+                    'line_start' => $ayahData['line_start'],
+                    'line_end' => $ayahData['line_end'],
+                    'ayah_text' => $ayahData['aya_text'],
+                    'ayah_no' => $ayahData['aya_no'],
+                ]);
+            }
         }
     }
 }

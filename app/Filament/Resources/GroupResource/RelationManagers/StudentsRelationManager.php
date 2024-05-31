@@ -46,6 +46,9 @@ class StudentsRelationManager extends RelationManager
                         'female' => 'أنثى',
                     ])
                     ->default('male'),
+                Forms\Components\TextInput::make('city')
+                    ->label('المدينة')
+                    ->required(),
             ]);
     }
 

@@ -14,13 +14,13 @@ class Core
     public static function sendMessageToAbsence(): void
     {
         $whatsAppService = new WhatsAppService();
-        $students = Student::with(['progress' => function ($query) {
+        $students = Student::with(['progresses' => function ($query) {
             $query->where('date', '>=', Carbon::now()->subDays(3)->toDateString())
                 ->orderBy('date', 'desc');
         }])->get();
         $res = null;
         foreach ($students as $student) {
-            $progresses = $student->progress;
+            $progresses = $student->progresses;
             if ($progresses->isEmpty()) {
                 continue;
             }
@@ -38,13 +38,13 @@ class Core
             }
             if (isset($res['contacts'])) {
                 Notification::make()
-                    ->title('تم إرسال رسالة واتساب للطالب '.$student->name)
+                    ->title('تم إرسال رسالة واتساب للطالب ' . $student->name)
                     ->color('success')
                     ->icon('heroicon-o-check-circle')
                     ->send();
             }
         }
-        if (! $res) {
+        if (!$res) {
             Notification::make()
                 ->title('ليس هناك طلاب غائبين اليوم ولله الحمد')
                 ->color('info')
@@ -66,13 +66,13 @@ class Core
             $res = $whatsAppService->sendCustomMessage($user, $message);
             if (isset($res['contacts'])) {
                 Notification::make()
-                    ->title('تم إرسال رسالة واتساب  ل'.$user->name)
+                    ->title('تم إرسال رسالة واتساب  ل' . $user->name)
                     ->color('success')
                     ->icon('heroicon-o-check-circle')
                     ->send();
             } else {
                 Notification::make()
-                    ->title('حدث خطأ أثناء إرسال رسالة واتساب ل '.$user->name)
+                    ->title('حدث خطأ أثناء إرسال رسالة واتساب ل ' . $user->name)
                     ->color('danger')
                     ->icon('heroicon-o-x-circle')
                     ->send();

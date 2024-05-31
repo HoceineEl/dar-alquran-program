@@ -5,6 +5,7 @@ namespace App\Filament\Resources\GroupResource\RelationManagers;
 use App\Helpers\ProgressFormHelper;
 use App\Models\Page;
 use App\Models\Progress;
+use App\Models\Student;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\MarkdownEditor;
@@ -12,11 +13,13 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Colors\Color;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -36,7 +39,7 @@ class ProgressesRelationManager extends RelationManager
     public function form(Form $form): Form
     {
         return $form
-            ->schema(ProgressFormHelper::getProgressFormSchema());
+            ->schema(ProgressFormHelper::getProgressFormSchema(group: $this->ownerRecord));
     }
 
     public function table(Table $table): Table
@@ -58,31 +61,51 @@ class ProgressesRelationManager extends RelationManager
                     })
                     ->label('الحالة'),
                 TextColumn::make('lines_from')
+                    ->getStateUsing(fn (Progress $record) => $record->lines_from + 1)
                     ->label('من'),
                 TextColumn::make('lines_to')
+                    ->getStateUsing(fn (Progress $record) => $record->lines_to + 1)
                     ->label('إلى'),
-            ])
-            ->filters([
-                //
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
                 Action::make('group')
                     ->label('تسجيل تقدم جماعي')
                     ->color(Color::Teal)
-                    ->form(function () {
-                        $students = $this->ownerRecord->students->pluck('name', 'id');
+                    ->form(function (Get $get) {
+                        $students = $this->ownerRecord->students->filter(function ($student) {
+                            return $student->progresses->where('date', now()->format('Y-m-d'))->count() == 0;
+                        })->pluck('name', 'id');
 
                         return [
                             Grid::make()
                                 ->schema([
                                     Select::make('students')
                                         ->label('الطلاب')
-                                        ->options(fn () => $students)
+                                        ->options(function (Get $get) {
+                                            return  $this->ownerRecord->students->filter(function ($student) use ($get) {
+                                                return $student->progresses->where('date', $get('date'))->count() == 0;
+                                            })->pluck('name', 'id');
+                                        })
                                         ->required()
+                                        ->live(onBlur: true)
+                                        ->afterStateUpdated(function ($state, Set $set) {
+                                            $progressData = isset($state[0]) ? ProgressFormHelper::calculateNextProgress(Student::find($state[0])) : null;
+                                            $set('page_id', $progressData['page_id'] ?? null);
+                                            $set('lines_from', $progressData['lines_from'] ?? 1);
+                                            $set('lines_to', $progressData['lines_to'] ?? 1);
+                                        })
+                                        ->afterStateHydrated(function ($state, Set $set) {
+                                            $progressData = isset($state[0]) ? ProgressFormHelper::calculateNextProgress(Student::find($state[0])) : null;
+                                            $set('page_id', $progressData['page_id'] ?? null);
+                                            $set('lines_from', $progressData['lines_from'] ?? 1);
+                                            $set('lines_to', $progressData['lines_to'] ?? 1);
+                                        })
+                                        ->default(fn () => $students->keys()->toArray())
                                         ->multiple(),
                                     DatePicker::make('date')
                                         ->label('التاريخ')
+                                        ->reactive()
                                         ->default(now()->format('Y-m-d'))
                                         ->required(),
                                     ToggleButtons::make('status')
@@ -123,8 +146,9 @@ class ProgressesRelationManager extends RelationManager
                                 ->schema([
                                     Select::make('page_id')
                                         ->label('الصفحة')
-                                        ->options(fn () => Page::all()->pluck('number', 'id'))
-                                        ->getOptionLabelFromRecordUsing(fn (Model $record) => "{$record->number} - {$record->surah_name} - {$record->lines_count} سطر")
+                                        ->options(function () {
+                                            return Page::all()->mapWithKeys(fn (Page $page) => [$page->id => "{$page->number} - {$page->surah_name}"])->toArray();
+                                        })
                                         ->preload()
                                         ->reactive()
                                         ->optionsLimit(700)
@@ -160,6 +184,20 @@ class ProgressesRelationManager extends RelationManager
                                 ->columnSpanFull()
                                 ->placeholder('أدخل ملاحظاتك هنا'),
                         ];
+                    })
+                    ->action(function (array $data) {
+                        foreach ($data['students'] as $studentId) {
+                            $student = Student::find($studentId);
+                            $student->progresses()->create([
+                                'date' => $data['date'],
+                                'status' => $data['status'],
+                                'comment' => $data['comment'],
+                                'page_id' => $data['page_id'],
+                                'lines_from' => $data['lines_from'],
+                                'lines_to' => $data['lines_to'],
+                                'notes' => $data['notes'],
+                            ]);
+                        }
                     }),
             ])
             ->actions([
@@ -169,11 +207,12 @@ class ProgressesRelationManager extends RelationManager
             ])
             ->filters([
                 SelectFilter::make('date')
+                    ->label('التاريخ')
                     ->options(function () {
                         return Progress::all()->pluck('date', 'date');
                     })
                     ->default(now()->format('Y-m-d')),
-            ])
+            ], FiltersLayout::AboveContent)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
