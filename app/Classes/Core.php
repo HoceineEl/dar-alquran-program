@@ -2,6 +2,7 @@
 
 namespace App\Classes;
 
+use App\Models\Group;
 use App\Models\Message;
 use App\Models\Student;
 use App\Models\User;
@@ -11,13 +12,20 @@ use Filament\Notifications\Notification;
 
 class Core
 {
-    public static function sendMessageToAbsence(): void
+    public static function sendMessageToAbsence(Group $group = null): void
     {
         $whatsAppService = new WhatsAppService();
-        $students = Student::with(['progresses' => function ($query) {
-            $query->where('date', '>=', Carbon::now()->subDays(3)->toDateString())
-                ->orderBy('date', 'desc');
-        }])->get();
+        if ($group !== null) {
+            $students = $group->students()->with(['progresses' => function ($query) {
+                $query->where('date', '>=', Carbon::now()->subDays(3)->toDateString())
+                    ->orderBy('date', 'desc');
+            }])->get();
+        } else {
+            $students = Student::with(['progresses' => function ($query) {
+                $query->where('date', '>=', Carbon::now()->subDays(3)->toDateString())
+                    ->orderBy('date', 'desc');
+            }])->get();
+        }
         $res = null;
         foreach ($students as $student) {
             $progresses = $student->progresses;

@@ -164,15 +164,15 @@ class ProgressFormHelper
         }
 
         $page = Page::where('number', $nextPageNumber)->first();
-        while (!$page && $nextPageNumber <= Page::max('number')) {
+        $maxPage = Page::max('number');
+        while (!$page && $nextPageNumber <= $maxPage) {
             $nextPageNumber += 1;
             $page = Page::where('number', $nextPageNumber)->first();
         }
-
         return [
             'page_id' => $page->id ?? null,
             'lines_from' => $nextLinesFrom - 1,
-            'lines_to' => min($nextLinesTo, $page->lines_count ?? 0),
+            'lines_to' => min($nextLinesTo, $page->lines_count - 1),
         ];
     }
 }

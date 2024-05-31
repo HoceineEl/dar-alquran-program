@@ -10,6 +10,7 @@ use App\Filament\Resources\GroupResource\RelationManagers\StudentsRelationManage
 use App\Models\Group;
 use App\Models\Message;
 use App\Models\Student;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action as FormAction;
 use Filament\Forms\Components\Select;
@@ -53,7 +54,7 @@ class GroupResource extends Resource
                     ])
                     ->default('two_lines'),
             ])
-            ->disabled(! Core::canChange());
+            ->disabled(!Core::canChange());
     }
 
     public static function table(Table $table): Table
@@ -88,6 +89,13 @@ class GroupResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('send_whatsapp_group')
+                    ->label('أرسل عبر الواتساب للغائبين')
+                    ->icon('heroicon-o-users')
+                    ->color('info')
+                    ->action(function (Group $record) {
+                        Core::sendMessageToAbsence($record);
+                    }),
             ])
             ->headerActions([
                 ActionsAction::make('send_whatsapp')

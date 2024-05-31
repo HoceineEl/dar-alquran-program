@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,8 @@ class Student extends Model
     protected $fillable = [
         'name', 'phone', 'group', 'sex', 'city', 'group_id',
     ];
+
+    protected $with = ['progresses', 'group', 'progresses.page'];
 
     public function progresses(): HasMany
     {
@@ -31,5 +34,21 @@ class Student extends Model
         $progress = $page * 100 / 604;
 
         return $progress;
+    }
+
+    public function needsCall(): bool
+    {
+        $threeDaysAgo = Carbon::now()->subDays(3);
+
+        $recentProgresses = $this->progresses()->where('date', '>=', $threeDaysAgo)->get();
+
+        $absentCount = $recentProgresses->where('status', 'absent')->count();
+
+        return $absentCount >= 3;
+    }
+
+    public function getAbsenceAttribute(): int
+    {
+        return $this->progresses()->where('status', 'absent')->count();
     }
 }

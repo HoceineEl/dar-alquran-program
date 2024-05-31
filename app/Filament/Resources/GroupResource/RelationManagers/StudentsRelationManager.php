@@ -4,6 +4,7 @@ namespace App\Filament\Resources\GroupResource\RelationManagers;
 
 use App\Helpers\ProgressFormHelper;
 use App\Models\Progress;
+use App\Models\Student;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -61,6 +62,7 @@ class StudentsRelationManager extends RelationManager
                 TextColumn::make('phone')
                     ->url(fn ($record) => "tel:{$record->phone}")
                     ->badge()
+                    ->color(fn (Student $record) => $record->needsCall() ? 'danger' : 'success')
                     ->label('رقم الهاتف'),
                 TextColumn::make('sex')->label('الجنس')
                     ->formatStateUsing(function ($state) {
